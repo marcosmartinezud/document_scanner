@@ -1,0 +1,30 @@
+# Virtual environments
+.venv/
+.venv311/
+venv/
+env/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Optional: keep a small sample in the repo; large raw data should be stored elsewhere
+# data/raw/
+
+# IDE and editor files
+.vscode/
+.idea/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db

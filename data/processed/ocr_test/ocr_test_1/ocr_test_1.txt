@@ -1,0 +1,44 @@
+6 Huang et al.
+considering costs from a local window of the map, as previous CNN-based optical
+flow estimation methods do. Even for estimating a single source pixel's accurate
+displacement, it is beneficial to take its contextual source pixels' cost maps into
+consideration.
+To tackle this challenging problem, we propose & transformer-based cost vol-
+ume encoder that encodes the whole cost volume into a cost memory. Our cost
+volume encoder consists of three steps: 1) cost map pathification; 2) cost patch
+token embedding, and 3) cost memory encoding: We elaborate the details of the
+three steps as follows.
+Cost map patchification. Following existing vision transformers, we patchify
+the cost map Mx € RHxW of each source pixel x with strided convolutions to ob-
+tain a sequence of cost patch embeddings. Specifically, given an H x W cost map;
+we first pad zeros at its right and bottom sides to make its width and height mul-
+tiples of 8. The padded cost map is then transformed by a stack of three stride-2
+convolutions followed by ReLU into a feature map Fx € RTH/8]* [W/8] xDp Each
+feature in the feature map stands for an 8 x 8 patch in the input cost map. The
+three convolutions have output channels of Dp/4, Dp/2, respectively.
+Patch Feature Tokenization via Latent Summarization. Although the
+patchification results in a sequence of cost patch feature vectors for each source
+pixel; the number of such patch features is still large and hinders the efficiency
+of information propagation among different source pixels. Actually; a cost map
+is highly redundant because only a few high costs are most informative To
+obtain more compact cost features; we further summarize the patch features
+Fx of each source pixel X via K latent codewords C € RKxD Specifically;
+the latent codewords query each source pixel's cost-patch features to further
+summarize each cost map into K latent vectors of D dimensions via the dot -
+product attention mechanism_ The latent codewords C € RKxD are randomly
+initialized, updated via back-propagation; and shared across all source pixels .
+The latent representations Tx for summarizing Fx are obtained as
+Kx = Conv1x1 (Concat(Fx, PE))=
+Vx = Conv1x1 (Concat (Fx; PE)) , (1)
+Tx Attention(C, Vx)
+Before projecting the cost-patch features Fx to obtain keys Kx and values
+the patch features are concatenated with a sequence of positional embeddings
+PE € RTH/8]xTW/8]x Dp Given a 2D position P, we encode it into a positional
+embedding of length Dp following COTR [27] . Finally, the cost map of the source
+pixel x can be summarized into K latent representations Tx € RKxD by con-
+ducting multi-head dot-product attention with the queries, keys, and values .
+Generally; K x D < H x W and the latent summarizations Tx therefore pro-
+vides more compact representations than each H x W cost map for each source
+pixel X For all source pixels in the image, there are a total of (H x W) 2D cost
+maps. Their summarized representations can consequently be converted into a
+latent 4D cost volume T € RHxWxKxD

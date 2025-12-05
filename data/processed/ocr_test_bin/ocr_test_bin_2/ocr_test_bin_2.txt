@@ -1,0 +1,42 @@
+2.2. NAIVE BAYES 19
+
+As in the categorical distributlon; the parameter % can be interpreted as a probabil-
+ity: specifically the probability that any gIven token in the document is the word j.
+The multinomial distribution involves a product over words, with each term in the
+product equal to the probability ø5, exponentiated by the count $j. Words that have
+zero count play no role in this product, because ø8 1. The term B(a) is called the
+multinomial coefficient. It doesn' t depend on %, and can usually be ignored. Can
+you see why we need this term at all??
+The notation P(z y; %) indicates the conditional probability of word counts <
+given label y with Parameter %, which is equal to Pmult(a; %v) By specifying the
+multinomial distribution, we describe the multinomial Naive Bayes classifier Why
+"naive"? Because the multinomial distribution treats each word token indepen-
+dently; conditioned on the class: the probability mass function factorizes across the
+counts.10
+
+22.1 Types and tokens
+A slight modification to the generative model of Naive Bayes is shown in Algorithm 2
+Instead of generating a vector of counts of types, z, this model generates a sequence of
+tokens, w (w1, 02, The distinction between types and tokens is critical: *j e
+{0,1,2, M} is the count of word type j in the vocabulary e-8- the number of times
+the word cannibal appears; Wm € V is the identity of token m in the document; e-g. Wm 2
+cannibal.
+The probability of the sequence w is a product of categorical probabilities. Algorithm 2
+makes a conditional independence assumption: each token w(2 is independent of all other
+tokens w(i)m' conditioned on the label y(i) . This is identical to the "naive" independence
+assumption implied by the multinomial distribution; and as a result; the optimal parame -
+ters for this model are identical to those in multinomial Naüve Bayes. For any instance, the
+probability assigned by this model is proportional to the probability under multinomial
+Naive Bayes. The constant of proportionality is the multinomial coefficient B(a). Because
+B(z) 2 1, the probability for a vector of counts 2 is at least as large as the probability
+for a list of words w that induces the same counts: there can be many word sequences
+that correspond to a single vector of counts: For example, man bites dog and dog bites man
+correspond to an identical count vector; {bites 1, dog 1, man 1} and B(a) is equal to
+the total number of possible word orderings for count vector 2.
+'Technically a multinomial distribution requires a second parameter; the total number of word counts
+in 2. In the bag-of-words representation is equal to the number of words in the document. However; this
+parameter is irrelevant for classification
+can plug in any probability distribution to the generative story and it will still be Naüve Bayes, as
+long as you are making the "naive" assumption that the features are conditionally independent, given the
+label. For example, a multivariate Gaussian with diagonal covariance is naive in exactly the same sense_
+Under contract with MIT Press, shared under CC-BY-NC-ND license.

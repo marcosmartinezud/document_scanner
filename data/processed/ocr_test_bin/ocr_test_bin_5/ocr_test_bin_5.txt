@@ -1,0 +1,39 @@
+Although we will discuss tbis in more detail towards tbe end of the course; it is important to
+remember tbat when deriving anything usíng passwords, we should always use 2 randomly generated
+salt. The recommended length of the salt is 64 bits, or even 128 bits if you want to be extra-safe.
+The key derived from PBKDF2 will be a function of tbe provided password and tbe salt. If you
+wish to derive the same key again in the future, such as wben you 're loading the keychain from
+disk, you will need to store the salt in tbe clear.
+The idea behind salting passwords is to prevent an offline dictionary attack, where an attacker
+derives keys for commonly used passwords, and tries to see if tbey work for different users' keychains.
+Salting slows tbe attackers down since they will have to do a separate dictionary attack for each
+useI _ To make this even more diffcult, PBKDF2 is deliberately designed to be a slow function (it
+should take about 0.5-1s per evaluation on your laptop) s0 as to rate limit an attacker trying to
+brute force it
+
+3 SubtleCrypto
+3.1 Using SubtleCrypto
+The SubtleCrypto API is exposed to you in password-nanager .js via 8 variable called subtle.
+For example; to hash a message with SHA-256, you could write in code:
+let msgHash await subtle.digest ("SHA-256" "CS 255 Rocks ! ") ;
+We encourage you to check out the docs to find out how to use the algorithms required for tbis
+project! You may generally use SHA-256 as a hash function when one is required.
+3.2 Key Usages
+Wben building a key using SubtleCrypto, you must specify the types of operations that the key
+may be used for. When building a key, there will be & keyUsages parameter, which should be flled
+with an array of strings specifying the different actions one might take with the key.
+If the key will be used to generate other keys, it requires the "deriveKey" usage. For MACs; you
+will need to give the key the "sign" and "verify" usages. For ciphers; you will use "encrypt" and
+"decrypt It is generally good practice to only enable keys to be used for the purposes relevant
+to your use casel
+3.3 Importing Passwords into SubtleCrypto
+Tbe subtle API generally deals with ArrayBuffers rather than Strings directly. The Node in-
+plementation of subtle will automatically convert Strings specifed as input parameters into their
+corresponding ArrayBuffer forms.
+However, one extra step must be taken to convert the password into useable key material. The
+snippet follows:
+let rawKey await subtle.importKey("raw password , {name "PBKDF2"} , false , ["deriveKey"])
+4Of course, this only goes s0 far , and so if you use a password manager , you should make sure that you choose a
+long master password that is hard to brute force.
+
+5

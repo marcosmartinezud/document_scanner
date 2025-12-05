@@ -1,0 +1,40 @@
+Antibiolics 2013, 2
+(4) Interpretation of Results-~Interpreting Consequences of Data Gathered from Phase 2 and 3_
+Making Informed Conclusion 8nd Proposing Suggested Courses of Action.
+In a 2004 case study performed by GSK, in association with North Carolina State University;
+'cradle to gate" of API production carried out. The study fully assessed every material on
+particular production tree, analyzed energy uses in all steps; and included waste streams and transport
+energy in the considerations. Using GSK's own in-house metrics the impacts of API production were
+fully analyzed from when the raw materials entered production t0 leaving the gate (Note: The fate of
+these products downstream was not included.) The results of the study found that solvent use is
+accountable for 75% of total energy use in the API production; and that great bcnefits can be obtained
+by more eflicient solvent disposal, recycling and optimization [39]-
+10. ADMETAbsorption, Distribution, Metaboltsm, Excretfon, Toxicity
+ADME is one of the oldest acronyms adopted by medicinal chcmists and is a broad description of a
+drugs lifecycle in the human body. The shortcomings With such a coverall are that once the drug
+excreted its effects are no longer considercd A more rccent appendage t0 ADME is "Toxicity" to the
+acronym _ This highlights the importance of taxicity parameters as part of the drug development
+process, but is usually limíted to eflects within the body (ie , not post-excretion) Enzymes can
+critically activate or deactivate parent drug molecule into harmless metabolites or biologically active
+compounds, and it is the latter that are of concern. A drive t0 understand the toxicity of potential
+metabolitcs has emcrged using in silico methods (QSAR etc;) In silico modeling and predictive
+modeling can employed during the drug development phase, along with traditional screening
+assays, t0 determine t0 within acceptable degrec of confidcnce; & drugs biological activity profile.
+The only shortcomings are datasets available to base these predictive calculations. This will improve
+over time making in silico screening more attractive and thus
+traditional screening methods [40}. Other parameters beyond toxicity of a drug candidate can also be
+predicted including physiochemical propenties (Log P, critical micelle concentration etc.), and can be
+useful datapoints deternining drug's behavior insidc the body and once released into the
+environment [41,42]. Furthenmnore, forays t0 predict biodegradation have been made using software
+suites such as META [43J, BIOWIN [44], CATABOL [45] and TOPKAT [46}
+Computational screening methodologies are usually preliminary studies before Phase
+Pre-Phase clinical trials_ Being position t analyze a drugs perfonance without increasing
+dosage to critical levels is a powerful asset. The ideology behind Phase 0 trials is that a non therapeutic
+quantity of the pharmaceutically actíve compound is administered to a trial participant. The_ dose while
+non-therapeutic can still have measurable pharmacological activity in the body. This sub therapeutic
+level allows for monitoring of ADMET properties of potential drug candidates with minimal risk to
+trial particípants health [47,48}. The results from Phase 0 trials can then be fed back into the drug
+design program ad allow for alterations to a drug candidate to be made as early as possible in a drugs
+development lifecycle. The benefits of early screening are both financial and environmentat,
+minimum risk to clinical trial participants occurs, and wealth of information can be gathered
+regarding a drug molecules toxicity before phase trials [49].

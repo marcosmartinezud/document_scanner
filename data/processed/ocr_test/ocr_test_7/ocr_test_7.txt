@@ -1,0 +1,45 @@
+8 Hunng ot nl
+
+concatonnting tho Bourco imngo's context fcabures 1 with the cost tokens when
+koye. Wo cnll this Iayer inter-cost-mnap self-attention layer
+0s it is responsiblo to propnpato information of cost volume across different source
+The nbovo self-attention operationg' parumeterg are shared across different
+groupS and Lhey sequentially opernted to formn the proposed alternate-group
+attention By stacking the alternate-group bransformer layer multiple times,
+the latent cost tokens can cflectively exchange information across source pixels
+and across latent representations to better encode the AD cost volume In this
+way; OuF cost volume encoder transforms bhe H x W * H * W AD cost volume
+to H x W x I latent tokens of length D We call the final H * W * K tokens
+as the cost memory; which is to be decoded for optical flow estimation.
+
+3.3 Cost Memory Decoder for Flow Estimation
+Given the cost memory encoded by the cost volume encoder, we propose a cost
+memory decoder to predict optical flows. Since the original resolution of the
+input image is Hi x W1, we estimate optical flow at the H * W resolution and
+then upsample the predicted flows to the original resolution with a learnable
+convex upsampler [47]. However, in contrast to previous vision transformers that
+seek abstract semantic features, optical flow estimation requires recovering dense
+correspondences from the cost memory Inspired by RAFT [47], we propose to
+use cost queries to retrieve cost features from the cost memory and iteratively
+refine flow predictions with a recurrent attention decoder layer .
+Cost memory aggregation. For predicting the flows of the H x W source
+pixels; we generate a sequence of (H x W) cost queries, each of which is re-
+sponsible for estimating the flow of à single source pixel via co-attention on
+the cost memory. To generate the cost query Qx for a source pixel x, we first
+compute its corresponding location in the target image given its current esti-
+mated flow f(x) as p = x + f(x). We then retrieve a local 9 x 9 cost-map patch
+9x = Cropgx9 (Mx,p) by cropping costs inside the 9 x 9 local window centered
+at p on the cost map Mx: The cost query Qx is then formulated based on
+the features FFN(qx) that encoded from the local costs qx and p's positional
+embedding PE(p), which can aggregate information from source pixel x's cost 9
+memory Tx via cross-attention,
+Qx = FFN (FFN(qx) + PE(p)) ,
+Kx = FFN (Tx) , Vx = FFN (Tx) 9 (4)
+Cx = Attention( Qx, Kx, Vx) .
+The cross-attention summarizes information from the cost memory for each
+source pixel to predict its flow. As Qx is dynamically updated in terms of the fed
+position at each iteration, we call it as dynamic positional cost query. We note
+that keys and values can be generated at the beginning and re-used in subsequent
+iterations, which saves computation as a benefit of our recurrent decoder.
+
+via
