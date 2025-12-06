@@ -1,13 +1,16 @@
 6 Huang et al.
+
+consideration.
+
+three steps as follows.
+
 considering costs from a local window of the map, as previous CNN-based optical
 flow estimation methods do. Even for estimating a single source pixel's accurate
 displacement, it is beneficial to take its contextual source pixels' cost maps into
-consideration.
 To tackle this challenging problem, we propose & transformer-based cost vol-
 ume encoder that encodes the whole cost volume into a cost memory. Our cost
 volume encoder consists of three steps: 1) cost map pathification; 2) cost patch
 token embedding, and 3) cost memory encoding: We elaborate the details of the
-three steps as follows.
 Cost map patchification. Following existing vision transformers, we patchify
 the cost map Mx € RHxW of each source pixel x with strided convolutions to ob-
 tain a sequence of cost patch embeddings. Specifically, given an H x W cost map;
@@ -29,7 +32,7 @@ product attention mechanism_ The latent codewords C € RKxD are randomly
 initialized, updated via back-propagation; and shared across all source pixels .
 The latent representations Tx for summarizing Fx are obtained as
 Kx = Conv1x1 (Concat(Fx, PE))=
-Vx = Conv1x1 (Concat (Fx; PE)) , (1)
+Vx = Conv1x1 (Concat (Fx; PE)) ,
 Tx Attention(C, Vx)
 Before projecting the cost-patch features Fx to obtain keys Kx and values
 the patch features are concatenated with a sequence of positional embeddings
@@ -42,3 +45,5 @@ vides more compact representations than each H x W cost map for each source
 pixel X For all source pixels in the image, there are a total of (H x W) 2D cost
 maps. Their summarized representations can consequently be converted into a
 latent 4D cost volume T € RHxWxKxD
+
+(1)

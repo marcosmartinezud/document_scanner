@@ -13,17 +13,16 @@ La utilidad detecta el contorno principal de una foto, corrige la perspectiva y 
    python -m venv .venv311
    .\.venv311\Scripts\Activate.ps1
    ```
-2. **Instalar dependencias mínimas:**
+2. **Instalar dependencias (CPU):**
    ```powershell
    pip install -r requirements.txt
    ```
-3. **Instalar dependencias Python (incluye EasyOCR):**
-   ```powershell
-   pip install -r requirements.txt
-   ```
-4. **Generar las imágenes de salida:**
+   Si tienes GPU con CUDA, instala la versión de torch/cuDNN adecuada antes de EasyOCR.
+3. **Generar las imágenes de salida:**
     ```powershell
     python -m src.pipeline --input data/raw
+    # O equivalente corto
+    python -m src --input data/raw
     ```
 
 Modos de ejecución
@@ -78,5 +77,17 @@ Cada imagen procesada produce (dentro de `data/processed/<subcarpeta>/<file_stem
 - `src/pipeline.py`: CLI que orquesta la ejecución.
 - `src/document_pipeline/geometry.py`: detección de contorno y homografía.
 - `src/document_pipeline/enhancement.py`: mejoras visuales y blanqueo.
+- `src/document_pipeline/ocr.py`: inicialización perezosa del OCR y postprocesado.
 - `src/document_pipeline/processing.py`: función `process_document` con el flujo completo.
-- `requirements.txt`: dependencias obligatorias (`opencv-python` y `numpy`).
+- `requirements.txt`: dependencias principales.
+- `pyproject.toml`: configuración de formateo/linter/tests.
+
+Pruebas y calidad
+-----------------
+
+- Ejecutar tests (requiere `pytest`):
+   ```powershell
+   pip install pytest
+   pytest
+   ```
+- Formateo y linting (requiere `black` y `ruff`, definidos en `pyproject.toml`).
