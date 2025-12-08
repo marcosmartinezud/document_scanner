@@ -1,11 +1,6 @@
-"""CLI para evaluar OCR y geometría por dataset (ocr_test, ocr_test_bin, scanner_test).
-
-Calcula, si existen datos:
-- CER y WER para OCR (usa <stem>.gt.txt vs <pred>/<stem>.txt)
-- Métricas geométricas simples: área relativa del polígono y aspect ratio.
-
-Genera un resumen JSON/CSV y, opcionalmente, gráficos PNG.
-"""
+"""Script para evaluar métricas OCR (CER, WER) y métricas geométricas 
+(corner RMSE, IoU) en datasets de imágenes escaneadas.
+Genera un resumen en JSON y un CSV detallado por imagen"""
 from __future__ import annotations
 
 import argparse
@@ -20,12 +15,14 @@ import numpy as np
 from src.eval_metrics import cer, wer, polygon_area, aspect_ratio, mean_corner_error
 
 
+# Leer y normalizar texto ground truth o predicho
 def load_text(path: Path) -> Optional[str]:
     if not path.exists():
         return None
     return path.read_text(encoding="utf-8").strip()
 
 
+# Leer esquinas desde archivo JSON
 def load_corners(path: Path):
     if not path.exists():
         return None
@@ -34,25 +31,36 @@ def load_corners(path: Path):
 
 
 def polygon_iou(poly_a, poly_b, shape_hw: tuple[int, int]) -> Optional[float]:
-    """IoU entre dos polígonos usando máscaras binarias."""
+    """
+    IoU entre dos polígonos usando máscaras binarias
+    """
     import cv2
 
-    h, w = shape_hw
-    if h <= 0 or w <= 0:
+    h, w = shape_hw # height, width
+    # Evitar máscaras vacías
+    if h <= 0 or w <= 0: 
         return None
+    
+    # Crear máscaras binarias
     a = np.zeros((h, w), dtype=np.uint8)
     b = np.zeros((h, w), dtype=np.uint8)
+
+    # Rellenar polígonos
     cv2.fillPoly(a, [np.array(poly_a, dtype=np.int32)], 1)
     cv2.fillPoly(b, [np.array(poly_b, dtype=np.int32)], 1)
+
+    # Calcular intersección y unión
     inter = np.logical_and(a, b).sum()
     union = np.logical_or(a, b).sum()
-    if union == 0:
+    if union == 0: # Evitar división por cero
         return None
     return float(inter) / float(union)
 
 
 def find_image(raw_root: Path, stem: str, patterns: Iterable[str]) -> Optional[Path]:
-    # Busca recursivamente la imagen correspondiente al stem
+    """
+    Buscar imagen en raw_root que coincida con el stem dado
+    """
     for pat in patterns:
         for p in raw_root.rglob(pat):
             if p.stem == stem:
@@ -69,7 +77,11 @@ def evaluate_dataset(
     eval_geometry: bool,
     skip_ocr: bool,
 ) -> list[dict]:
-    # Build stems by stripping known GT suffixes so we get the real image stems
+    """
+    Evaluar un dataset específico y devolver una lista de diccionarios con las métricas por imagen
+    """
+
+    # Obtener todos los stems de archivos GT (txt y corners.json)
     stems_set = set()
     for p in gt_root.glob("*.gt.txt"):
         stems_set.add(p.name.replace(".gt.txt", ""))
@@ -82,20 +94,20 @@ def evaluate_dataset(
     for stem in stems:
         row = {"dataset": dataset, "stem": stem}
 
-        if skip_ocr:
+        if skip_ocr: # omitir cálculo de CER/WER
             row["cer"] = None
             row["wer"] = None
-        else:
-            gt_txt = gt_root / f"{stem}.gt.txt"
+        else: # Calcular CER/WER
+            gt_txt = gt_root / f"{stem}.gt.txt" # archivo de ground truth
 
-            # Robust lookup for predicted txt files: handle small naming inconsistencies
+            # Buscar archivo predicho correspondiente
             def find_pred_txt(root: Path, stem_name: str):
-                # Common candidate locations
+                # Buscar en ubicaciones comunes
                 candidates = [root / stem_name / f"{stem_name}.txt", root / f"{stem_name}.txt"]
                 for c in candidates:
                     if c.exists():
                         return c
-                # Fallback: search for any .txt whose stem matches or contains the gt stem
+                # Búsqueda más flexible
                 import re
 
                 def extract_trailing_number(name: str):
@@ -107,7 +119,7 @@ def evaluate_dataset(
                     s = p.stem
                     if s == stem_name or s.endswith(stem_name) or stem_name.endswith(s):
                         return p
-                    # match by trailing numeric id (e.g., ocr_test_1 vs ocr_test_bin_1)
+                    # intentar coincidir por número final
                     if target_num is not None:
                         s_num = extract_trailing_number(s)
                         if s_num == target_num:
@@ -124,12 +136,12 @@ def evaluate_dataset(
                 row["cer"] = None
                 row["wer"] = None
 
-        if eval_geometry:
+        if eval_geometry: # Calcular métricas geométricas (solo para scanner_test)
             corners_gt = load_corners(gt_root / f"{stem}.corners.json")
             img_path = find_image(raw_root, stem, patterns)
             img = None
             if img_path and img_path.exists():
-                import cv2  # local import to avoid overhead cuando no se usa
+                import cv2 
 
                 img = cv2.imread(str(img_path))
 
@@ -140,7 +152,7 @@ def evaluate_dataset(
                 row["area_ratio_gt"] = area_poly / area_img if area_img > 0 else None
                 row["aspect_ratio_gt"] = aspect_ratio(corners_gt)
 
-            # Comparación pred vs GT de esquinas (solo si hay pred_corners_root)
+            # Comparar pred vs GT de esquinas (solo si hay pred_corners_root)
             pred_c = None
             if pred_corners_root is not None:
                 for candidate in [
@@ -185,6 +197,9 @@ def evaluate_dataset(
 
 
 def summarize(rows: list[dict]) -> dict:
+    """
+    Agregar resultados por dataset y calcular promedios generales
+    """
     def avg(key: str, dataset: str | None = None):
         vals = [r[key] for r in rows if r.get(key) is not None and (dataset is None or r.get("dataset") == dataset)]
         return sum(vals) / len(vals) if vals else None
@@ -209,7 +224,7 @@ def summarize(rows: list[dict]) -> dict:
             "count": len(rows),
             "cer_avg": avg("cer"),
             "wer_avg": avg("wer"),
-            # Métricas geométricas se calculan sobre scanner_test
+            # Métricas geométricas globales (solo scanner_test)
             "area_ratio_gt_avg": avg("area_ratio_gt", "scanner_test"),
             "area_ratio_pred_avg": avg("area_ratio_pred", "scanner_test"),
             "area_ratio_diff_avg": avg("area_ratio_diff", "scanner_test"),
@@ -222,7 +237,7 @@ def summarize(rows: list[dict]) -> dict:
         "by_dataset": per_ds,
     }
 
-    # Comparación directa entre ocr_test y ocr_test_bin si existen
+    # Comparaciones específicas entre datasets (si los dos existen)
     if "ocr_test" in per_ds and "ocr_test_bin" in per_ds:
         summary["comparison_ocr_vs_bin"] = {
             "cer_diff": safe_diff(per_ds["ocr_test"].get("cer_avg"), per_ds["ocr_test_bin"].get("cer_avg")),
@@ -231,12 +246,14 @@ def summarize(rows: list[dict]) -> dict:
     return summary
 
 
+# Función auxiliar para diferencias seguras
 def safe_diff(a, b):
     if a is None or b is None:
         return None
     return b - a
 
 
+# Guardar lista de diccionarios en CSV
 def write_csv(path: Path, rows: list[dict]):
     path.parent.mkdir(parents=True, exist_ok=True)
     if not rows:
@@ -249,11 +266,13 @@ def write_csv(path: Path, rows: list[dict]):
         writer.writerows(rows)
 
 
+# Guardar diccionario en JSON
 def write_json(path: Path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+# Generar gráficos de métricas usando matplotlib
 def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
     try:
         import matplotlib
@@ -339,7 +358,7 @@ def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
         "aspect_ratio_scatter.png",
     )
 
-    # Guardamos también un bar plot compacto para IoU y RMSE promedios
+    # Guardar también gráficos de barras para promedios generales
     avg_metrics = {
         "corner_rmse_avg": geo_summary.get("corner_rmse_avg"),
         "polygon_iou_avg": geo_summary.get("polygon_iou_avg"),
@@ -357,6 +376,9 @@ def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
 
 
 def main(argv=None) -> int:
+    """
+    Definir la CLI y ejecutar la evaluación
+    """
     parser = argparse.ArgumentParser(description="Evalúa OCR y geometría por dataset")
     parser.add_argument("--gt-root", type=Path, default=Path("data/ground_truth"))
     parser.add_argument("--pred-root", type=Path, default=Path("data/processed"))

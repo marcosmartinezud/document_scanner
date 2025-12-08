@@ -1,9 +1,4 @@
-"""Utilidades OCR con inicialización perezosa y postproceso.
-
-El lector de EasyOCR se construye bajo demanda para evitar cargas pesadas
-en el import del módulo y permitir ejecutar partes del pipeline sin
-instalar dependencias de GPU.
-"""
+"""Módulo OCR usando EasyOCR con postprocesamiento avanzado"""
 from __future__ import annotations
 
 from functools import lru_cache
@@ -17,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 def _detect_gpu(use_gpu_override: bool | None) -> bool:
-    """Decide si usar GPU.
-
-    - Si el usuario indica True/False, se respeta.
-    - Si es None, se intenta detectar CUDA via torch; si no está torch o falla,
-      se vuelve a CPU.
+    """
+    Decidir si usar GPU
+        - Si el usuario indica True/False, se respeta
+        - Si es None, se intenta detectar CUDA via torch. 
+          Si no está torch o falla, se vuelve a CPU
     """
     if use_gpu_override is not None:
         return bool(use_gpu_override)
@@ -35,37 +30,31 @@ def _detect_gpu(use_gpu_override: bool | None) -> bool:
 
 @lru_cache(maxsize=4)
 def _build_reader(languages: tuple[str, ...], use_gpu: bool):
-    """Crea y cachea el lector de EasyOCR.
-
-    Se cachea por combinación de idiomas y flag de GPU. Si falla la
-    inicialización, se propaga como RuntimeError con contexto.
     """
+    Crea y cachea el lector de EasyOCR. Si falla, lanza RuntimeError con detalles
+    """
+
     try:
         import easyocr
-    except Exception as exc:  # pragma: no cover - se ejecuta solo si falta easyocr
-        raise RuntimeError("EasyOCR no está disponible. Instala 'easyocr' y 'torch'.") from exc
+    except Exception as exc:
+        raise RuntimeError("EasyOCR no está disponible. Instala 'easyocr' y 'torch'") from exc
 
     try:
         reader = easyocr.Reader(list(languages), gpu=use_gpu, verbose=False)
     except Exception as exc:  # pragma: no cover - inicialización puede fallar en runtime
-        raise RuntimeError(f"No se pudo inicializar EasyOCR (idiomas={languages}, gpu={use_gpu}).") from exc
+        raise RuntimeError(f"No se pudo inicializar EasyOCR (idiomas={languages}, gpu={use_gpu})") from exc
 
     if use_gpu:
-        logger.info("EasyOCR: GPU detectada y activada para inferencia.")
+        logger.info("EasyOCR: GPU detectada y activada para inferencia")
     else:
-        logger.info("EasyOCR: GPU no detectada — usando CPU.")
+        logger.info("EasyOCR: GPU no detectada — usando CPU")
     return reader
 
 
 def get_ocr_reader(languages: Sequence[str] | None = None, use_gpu: bool | None = None):
-    """Devuelve una instancia cacheada de EasyOCR.Reader.
-
-    Parameters
-    ----------
-    languages : secuencia de str
-        Idiomas a usar. Por defecto ('en', 'es').
-    use_gpu : bool | None
-        Forzar uso de GPU (True/False) o dejar que se autodetecte (None).
+    """
+    Obtiene un lector de OCR de EasyOCR con los idiomas especificados.
+    Si no se especifican idiomas, se usan inglés y español por defecto.
     """
     lang_tuple = tuple(languages or ("en", "es"))
     use_gpu_final = _detect_gpu(use_gpu)
@@ -78,12 +67,14 @@ def extract_text(
     conf_threshold: float = 0.30,
     return_debug: bool = False,
 ):
-    """Ejecuta OCR sobre una imagen BGR y devuelve el texto postprocesado."""
+    
+    # Si no se pasa reader, se crea uno por defecto
     if reader is None:
         reader = get_ocr_reader()
 
-    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-    results = reader.readtext(image_rgb)
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB) # Convertir a RGB
+    results = reader.readtext(image_rgb) # Devolver resultados raw de EasyOCR
+    # Postprocesar resultados
     return _postprocess_easyocr_results(results, conf_threshold=conf_threshold, return_debug=return_debug)
 
 
@@ -92,28 +83,32 @@ def _postprocess_easyocr_results(
     conf_threshold: float = 0.30,
     return_debug: bool = False,
 ):
-    """Agrupa detecciones de EasyOCR respetando columnas y líneas.
-
-    - Filtra por confianza.
-    - Ordena por Y, luego por columnas si hay separación suficiente.
-    - Junta tokens por línea y agrupa en párrafos por salto vertical.
     """
+    Postprocesa los resultados de EasyOCR para juntar el texto en párrafos con sentido
+    """
+
     if not results:
         return ("", [], []) if return_debug else ""
 
+    # Inicializar listas
     cleaned: list[dict] = []
     heights: list[float] = []
     x_values: list[float] = []
+
     for entry in results:
+        # Validar entrada
         if (not isinstance(entry, (list, tuple))) or len(entry) < 3:
             continue
         bbox, text, conf = entry
+
         try:
-            confidence = float(conf) if conf is not None else 1.0
+            confidence = float(conf) if conf is not None else 1.0 # Convertir confianza a float
         except Exception:
             confidence = 1.0
         if confidence < conf_threshold:
             continue
+
+        # Extraer coordenadas del bounding box y calcular min/max
         try:
             xs = [float(pt[0]) for pt in bbox]
             ys = [float(pt[1]) for pt in bbox]
@@ -123,6 +118,8 @@ def _postprocess_easyocr_results(
         y_min, y_max = min(ys), max(ys)
         heights.append(y_max - y_min)
         x_values.extend([x_min, x_max])
+
+        # Añadir entrada limpia
         cleaned.append(
             {
                 "text": str(text).strip(),
@@ -138,14 +135,18 @@ def _postprocess_easyocr_results(
     if not cleaned:
         return ("", [], []) if return_debug else ""
 
-    cleaned.sort(key=lambda it: it["y_center"])
+    cleaned.sort(key=lambda it: it["y_center"]) # Ordenar por centro Y
+
+    # Calcular tolerancias basadas en la altura mediana
     median_h = float(np.median(heights)) if heights else 12.0
     strict_tol = max(8.0, median_h * 0.35)
     paragraph_gap = max(strict_tol * 4.0, median_h * 2.2)
 
+    # Agrupar líneas basadas en proximidad vertical
     line_clusters: list[list[dict]] = []
     cluster_centers: list[float] = []
 
+    # Agrupar detecciones en líneas basadas en proximidad vertical
     for det in cleaned:
         best_idx = None
         best_diff = None
@@ -161,14 +162,17 @@ def _postprocess_easyocr_results(
             line_clusters[best_idx].append(det)
             cluster_centers[best_idx] = float(np.mean([d["y_center"] for d in line_clusters[best_idx]]))
 
-    lines = [sorted(cluster, key=lambda it: it["x_min"]) for cluster in line_clusters]
+    lines = [sorted(cluster, key=lambda it: it["x_min"]) for cluster in line_clusters] # Ordenar dentro de cada línea por X
 
-    assembled: list[dict] = []
+    assembled: list[dict] = [] # Líneas ensambladas finales
+
+    # Ensamblar texto dentro de cada línea
     for group in lines:
-        # Divide el grupo en subgrupos si hay huecos horizontales grandes (posibles columnas).
+        # Dividir el grupo en subgrupos si hay huecos horizontales grandes (posibles columnas)
         split_gap = max(median_h * 2.5, 35.0)
         subgroups: list[list[dict]] = [[]]
         last_xmax = None
+        # Dividir en subgrupos basados en huecos horizontales
         for det in group:
             x_min, x_max = det["x_min"], det["x_max"]
             if last_xmax is not None and (x_min - last_xmax) > split_gap:
@@ -176,6 +180,7 @@ def _postprocess_easyocr_results(
             subgroups[-1].append(det)
             last_xmax = x_max
 
+        # Ensamblar texto en cada subgrupo
         for sub in subgroups:
             tokens: list[str] = []
             for det in sub:
@@ -202,6 +207,7 @@ def _postprocess_easyocr_results(
     if not assembled:
         return ("", cleaned, []) if return_debug else ""
 
+    # Detectar columnas basadas en posiciones X
     page_width = (max(x_values) - min(x_values)) if x_values else 1.0
     column_ids = [0] * len(assembled)
     if len(assembled) >= 4:
@@ -221,12 +227,14 @@ def _postprocess_easyocr_results(
                     if pos in splits:
                         current_col += 1
 
+    # Ordenar líneas por columna y posición Y
     ordered = [
         (line["y_center"], line["x_center"], column_ids[idx], line["text"])
         for idx, line in enumerate(assembled)
     ]
     ordered.sort(key=lambda tpl: (tpl[2], tpl[0], tpl[1]))
 
+    # Agrupar en párrafos basados en saltos verticales grandes o cambios de columna
     paragraphs: list[list[str]] = []
     current_para: list[str] = []
     prev_y = ordered[0][0]
@@ -247,6 +255,7 @@ def _postprocess_easyocr_results(
         paragraphs.append(current_para)
 
     normalized_lines: list[str] = []
+    # Ensamblar texto final con normalización de espacios
     for para in paragraphs:
         for line in para:
             normalized_lines.append(" ".join(line.split()))
