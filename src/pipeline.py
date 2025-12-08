@@ -1,24 +1,24 @@
-"""CLI para el pipeline de documentos."""
+"""CLI para el pipeline de documentos"""
 from argparse import ArgumentParser
 from pathlib import Path
 import logging
 
 from .document_pipeline import process_batch, process_document
-from pathlib import PurePath
 
 
 def _build_parser() -> ArgumentParser:
+    # Construir el parser
     parser = ArgumentParser(
         description="Detecta el contorno principal y genera las variantes del documento",
     )
     parser.add_argument(
         "--input",
-        required=True,
+        required=True, # es obligatorio
         help="Ruta de la imagen o carpeta con imágenes de entrada",
     )
     parser.add_argument(
         "--output-dir",
-        default=None,
+        default=None, #data/processed por defecto
         help="Directorio raíz donde guardar las salidas (por defecto, data/processed)",
     )
     return parser
@@ -26,10 +26,11 @@ def _build_parser() -> ArgumentParser:
 
 def _expand_inputs(input_path: Path) -> list[Path]:
     if input_path.is_dir():
-        # Acepta extensiones comunes de imagen y busca recursivamente
-        # dentro de subcarpetas (p. ej. `data/raw/ocr_test/...`).
+        """Aceptar extensiones comunes de imagen y busca recursivamente
+        dentro de subcarpetas ("data/raw/ocr_test/...")"""
+
         patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tif", "*.tiff"]
-        images: list[Path] = []
+        images: list[Path] = [] # lista para almacenar los paths de las imágenes
         for pattern in patterns:
             images.extend(input_path.rglob(pattern))
         return sorted(images)
@@ -38,14 +39,16 @@ def _expand_inputs(input_path: Path) -> list[Path]:
 
 def main() -> None:
     args = _build_parser().parse_args()
-    # Configura logging básico para salida consistente
+    # Configurar logging
     logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
     input_path = Path(args.input)
     output_root = Path(args.output_dir) if args.output_dir else None
-    # Inferimos el modo por la naturaleza de `--input`:
-    # - Si es un archivo: modo 'archivo'
-    # - Si es una carpeta bajo `data/raw` (p.ej. data/raw/scanner_test): modo 'carpeta'
-    # - Si es la raíz `data/raw` o una carpeta que contiene varias subcarpetas: modo 'todo'
+    """
+    Definir el modo por la naturaleza de "--input":
+        - Si es un archivo: modo "archivo"
+        - Si es una carpeta bajo "data/raw" (data/raw/scanner_test): modo "carpeta"
+        - Si es la raíz "data/raw" o una carpeta que contiene varias subcarpetas: modo "todo" 
+    """
     image_paths = _expand_inputs(input_path)
     if not image_paths:
         raise FileNotFoundError("No se encontraron imágenes en la ruta indicada.")
@@ -53,7 +56,7 @@ def main() -> None:
     RAW_ROOT = Path("data/raw").resolve()
 
     if input_path.is_file():
-        # Archivo individual: determinamos la subcarpeta superior (si está bajo data/raw)
+        # Archivo individual: determinar la subcarpeta superior (si está bajo data/raw)
         try:
             rel = input_path.resolve().relative_to(RAW_ROOT)
             top_folder = rel.parts[0] if rel.parts else None
@@ -74,8 +77,7 @@ def main() -> None:
             elif name == "scanner_test":
                 do_ocr_flag = False
                 bin_thresh = None
-            # Soportamos carpetas llamadas "ocr_test_bin" o "scanner_test_bin"
-            # y, por seguridad, cualquier carpeta que termine en "_bin".
+            # Para carpetas llamadas "ocr_test_bin" o "scanner_test_bin"
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
                 do_ocr_flag = True
                 bin_thresh = 195
@@ -86,7 +88,7 @@ def main() -> None:
             do_ocr=do_ocr_flag,
             binarize_threshold=bin_thresh,
         )
-        # Guardamos OCR en archivo si existe
+        # Guardar OCR en archivo si existe
         if extracted_text:
             txt_path = target_dir / f"{stem}.txt"
             txt_path.parent.mkdir(parents=True, exist_ok=True)
@@ -94,33 +96,35 @@ def main() -> None:
         logging.info(f"Procesado archivo: {input_path} -> {target_dir}")
 
     else:
-        # Carpeta: si es la raíz `data/raw` procesamos todo conservando subcarpetas;
-        # si es una subcarpeta concreta, también la procesamos recursivamente.
+        """Carpeta: si es la raíz "data/raw" procesar todo conservando subcarpetas;
+        si es una subcarpeta concreta, también procesar recursivamente"""
         try:
             is_raw_root = input_path.resolve() == RAW_ROOT
         except Exception:
             is_raw_root = False
 
         if is_raw_root:
-            # Procesa todas las imágenes bajo data/raw y preserva la subcarpeta superior
+            # Procesar todas las imágenes bajo data/raw y preservar la subcarpeta superior
             input_root = RAW_ROOT
             image_paths = _expand_inputs(input_path)
             results = process_batch(image_paths, output_root, input_root)
         else:
-            # Carpeta específica (p.ej. data/raw/scanner_test)
-            # Para preservar el nombre de la subcarpeta en la salida, pasamos input_root=RAW_ROOT
+            """
+            Carpeta específica (data/raw/scanner_test)
+            Para preservar el nombre de la subcarpeta en la salida, pasar input_root=RAW_ROOT
+            """
             try:
                 rel = input_path.resolve().relative_to(RAW_ROOT)
-                # Si está bajo RAW_ROOT usamos RAW_ROOT como input_root para preservar la carpeta
+                # Si está bajo RAW_ROOT usar RAW_ROOT como input_root para preservar la carpeta
                 input_root = RAW_ROOT
             except Exception:
-                # Carpeta fuera de data/raw: no preservamos subcarpeta superior
+                # Carpeta fuera de data/raw: no preservar subcarpeta superior
                 input_root = None
 
             image_paths = _expand_inputs(input_path)
             results = process_batch(image_paths, output_root, input_root)
 
-        # Para cada resultado: guardamos .txt cuando haya texto OCR (no lo imprimimos)
+        # Para cada resultado: guardar .txt cuando haya texto OCR
         for (_contour_path, _warp_path, warp_clean_path, extracted_text) in results:
             target_dir = warp_clean_path.parent
             stem = target_dir.name

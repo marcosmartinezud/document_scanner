@@ -1,4 +1,5 @@
-Antibiotics 2013,2 427
+Antibiotics 2013,2
+
 Interpretation of Results Interpreting Consequences of Data Gatheredfrom Phase 2 and 3
 Making Informed Conclusion and Proposing Suggested Courses of Action.
 In a 2004 case study performed by GSK_ in association with North Carolina State University;
@@ -38,3 +39,5 @@ design program and allow for alterations to a drug candidate to be made as early
 development lifecycle. The benefits of early screening arc both financial and environmental,
 minimum risk clinical trial participants occurs, and wealth of information can be gathered
 regarding a drug molecules toxicity before phase trials [49].
+
+427

@@ -1,0 +1,19 @@
+
+BIBLIOGRAPHY
+501
+Carletta, J. (1996). Assessing agreement on classification tasks: the kappa statistic. Com- putational linguistics 22(2), 249-254.
+Carletta, J. (2007). Unleashing the killer corpus: experiences in creating the multi- everything ami meeting corpus. Language Resources and Evaluation 41(2), 181-190.
+Carlson, L. and D. Marcu (2001). Discourse tagging reference manual. Technical Report ISI-TR-545, Information Sciences Institute.
+Carlson, L., M. E. Okurowski, and D. Marcu (2002). RST discourse treebank. Linguistic Data Consortium, University of Pennsylvania.
+Carpenter, B. (1997). Type-logical semantics. Cambridge, MA: MIT Press.
+Carreras, X., M. Collins, and T. Koo (2008). Tag, dynamic programming, and the percep- tron for efficient, feature-rich parsing. In Proceedings of the Conference on Natural Language Learning (CoNLL), pp. 9–16.
+Carreras, X. and L. Màrquez (2005). Introduction to the conll-2005 shared task: Semantic role labeling. In Proceedings of the Ninth Conference on Computational Natural Language Learning, pp. 152-164. Association for Computational Linguistics.
+Carroll, L. (1865). Alice's Adventures in Wonderland. London: Macmillan.
+Carroll, L. (1917). Through the looking glass: And what Alice found there. Chicago: Rand, McNally.
+Chambers, N. and D. Jurafsky (2008). Jointly combining implicit constraints improves temporal ordering. See emn (2008), pp. 698-706.
+Chang, K.-W., A. Krishnamurthy, A. Agarwal, H. Daume III, and J. Langford (2015). Learning to search better than your teacher. See icm (2015).
+Chang, M.-W., L. Ratinov, and D. Roth (2007). Guiding semi-supervision with constraint- driven learning. See acl (2007), pp. 280–287.
+Chang, M.-W., L.-A. Ratinov, N. Rizzolo, and D. Roth (2008). Learning and inference with constraints. In Proceedings of the National Conference on Artificial Intelligence (AAAI), pp. 1513-1518.
+Chapman, W. W., W. Bridewell, P. Hanbury, G. F. Cooper, and B. G. Buchanan (2001). A simple algorithm for identifying negated findings and diseases in discharge summaries. Journal of biomedical informatics 34(5), 301-310.
+Charniak, E. (1997). Statistical techniques for natural language parsing. Al magazine 18(4), 33-43.
+Under contract with MIT Press, shared under CC-BY-NC-ND license.

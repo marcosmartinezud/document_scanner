@@ -1,16 +1,23 @@
+pixols.
+
+Bx
+
 l 0
+
+3.3 Cost Memory Decodor for Flow Estimation
+
+memory Tx via cross-attention
 
 pixcls into SS-SclfAttcntion via
 t wiul the cost tokcns whcI
 koya.
-pixols.
+
 {rc sharcd across diffcrent
 
 ellcclivoly oxchungc informution across source pixels
 cost voluInc. In this
 10 H x W x K Inlcnt tokens of lengul D. Wc call thc final H x W x K tokens
 
-3.3 Cost Memory Decodor for Flow Estimation
 Given the cost; menory encoded by the cost volume encoder, we propose & cost
 memory decoder to predict optical flows. Since the original resolution of the
 input image is H1 X W1= we estimate optical flow at the H x W resolution and
@@ -26,16 +33,18 @@ sponsible for estimating the fow of a single source pixel via co-attention on
 the cost memory. To generate the cost query Qx for a source pixel X, we first
 compute its corresponding location in the target image given its current esti-
 mated flow f(x) as p =x+ f(x) We then retrieve a local 9 * 9 cost-map patch
-Bx (Mx,p) by cropping costs inside the 9 x 9 local window centered
+(Mx,p) by cropping costs inside the 9 x 9 local window centered
 at p on the cost map Mx' The cost query Qx is then formulated based on
 the features FFN(%x) that encoded from the local costs qx and p's positional
 embedding PE(p) which can aggregate information from source pixel x's cost
-memory Tx via cross-attention
+
 Qx FFN (FFN(qx) + PE(p)) ,
-Kx FFN (Tx) Vx = FFN(Tx) , 4)
+Kx FFN (Tx) Vx = FFN(Tx) ,
 Cx Attention(Qx, Kx, Vx)
 The cross-attention summarizes information from the cost memory for each
 sourcc pixel to predict its flow. As Qx is dynamically updated in terms of the fed
 position at each iteration; we call it as dynamic positional cost query. We note
 that keys and values can be generated at the beginning and re-used in subsequent
 itcrations; which saves computation as a beneft of our recurrent decoder.
+
+4)

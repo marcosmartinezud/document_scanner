@@ -1,4 +1,4 @@
-2.2 NAIVE BAYES 19
+2.2 NAIVE BAYES
 
 As in the categorical distribution, the parameter %; can be interpreted as a probabil-
 ity: specifically the probability that any given token in the document is the word j.
@@ -8,7 +8,6 @@ zero count play no role in this product, because = 1. The term B(x) is called th
 multinomial coefficient. It doesn' t depend on %, and can usually be ignored. Can
 you see why we need this term at all?9
 The notation P(z U; %) indicates the conditional probability of word counts I
-By specifying the
 multinomial distribution; we describe the multinomial Naive Bayes classifier. Why
 "naive"? Because the multinomial distribution treats each word token indepen-
 dently; conditioned on the class: the probability mass function factorizes across the
@@ -40,3 +39,7 @@ parameter is irrelevant for classification
 long as you are making the naive" assumption that the features are conditionally independent, given the
 label. For example, a multivariate Gaussian with diagonal covariance is naive in exactly the same sense
 Under contract with MIT Press , shared under CC-BY-NC-ND license.
+
+By specifying the
+
+19

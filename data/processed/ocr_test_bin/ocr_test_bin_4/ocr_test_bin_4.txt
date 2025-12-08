@@ -1,4 +1,8 @@
-250 CHAPTER 6. FREQUENT ITEMSETS
+250
+
+are found in [3].
+
+CHAPTER 6. FREQUENT ITEMSETS
 
 second pass allows us to count all the candidates and find the exact col-
 lection of frequent itemsets. This algorithm is especially appropriate in a
@@ -23,7 +27,6 @@ that are less than 1/2.
 The market-basket data model, including association rules and the A-Priori
 Algorithm, are from [1] and [2]-
 The PCY Algorithm is from [4]. The Multistage and Multihash Algorithms
-are found in [3].
 The SON Algorithm is from [5] Toivonen's Algorithm appears in [6].
 1 R Agrawal, T. Imielinski, and A Swami, "Mining associations between
 sets of items in massive databases," Proc. ACM SIGMOD Intl. Conf: on

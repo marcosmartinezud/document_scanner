@@ -29,7 +29,7 @@ product attention mechanism. The latent codewords C € RKxD are randomly
 initialized; updated via back-propagation; and shared across all source pixels.
 The latent representations Tx for summarizing Fx are obtained as
 Kx Conv1x1 (Concat(Fx, PE)) =
-Vx = Conv1x1 (Concat(Fx, PE)) , (1)
+Vx = Conv1x1 (Concat(Fx, PE)) ,
 Tx Attention(C,Kx, Vx)
 Before projecting the cost-patch features Fx to obtain keys Kx and values X)
 the patch features are concatenated with a sequence of positional embeddings
@@ -42,3 +42,5 @@ vides more compact representations than each H x W cost map for each source
 pixel x. For all source pixels in the image, there are 9 total of (H x W) 2D cost
 maps. Their summarized representations can consequently be converted into
 latent 4D cost volume T € RHxWxKxD_
+
+(1)

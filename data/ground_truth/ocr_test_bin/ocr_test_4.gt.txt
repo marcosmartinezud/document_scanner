@@ -1,0 +1,16 @@
+
+250
+CHAPTER 6. FREQUENT ITEMSETS
+second pass allows us to count all the candidates and find the exact col- lection of frequent itemsets. This algorithm is especially appropriate in a MapReduce setting.
+Toivonen's Algorithm: This algorithm starts by finding frequent itemsets in a sample, but with the threshold lowered so there is little chance of missing an itemset that is frequent in the whole. Next, we examine the entire file of baskets, counting not only the itemsets that are frequent in the sample, but also, the negative border itemsets that have not been found frequent, but all their immediate subsets are. If no member of the negative border is found frequent in the whole, then the answer is exact. But if a member of the negative border is found frequent, then the whole process has to repeat with another sample.
+✦ Frequent Itemsets in Streams: If we use a decaying window with constant c, then we can start counting an item whenever we see it in a basket. We start counting an itemset if we see it contained within the current basket, and all its immediate proper subsets already are being counted. As the window is decaying, we multiply all counts by 1 - c and eliminate those that are less than 1/2.
+6.7
+References for Chapter 6
+The market-basket data model, including association rules and the A-Priori Algorithm, are from [1] and [2].
+The PCY Algorithm is from [4]. The Multistage and Multihash Algorithms are found in [3].
+The SON Algorithm is from [5]. Toivonen's Algorithm appears in [6].
+1. R. Agrawal, T. Imielinski, and A. Swami, "Mining associations between sets of items in massive databases," Proc. ACM SIGMOD Intl. Conf. on Management of Data, pp. 207-216, 1993.
+2. R. Agrawal and R. Srikant, "Fast algorithms for mining association rules," Intl. Conf. on Very Large Databases, pp. 487-499, 1994.
+3. M. Fang, N. Shivakumar, H. Garcia-Molina, R. Motwani, and J.D. Ull- man, "Computing iceberg queries efficiently," Intl. Conf. on Very Large Databases, pp. 299-310, 1998.
+4. J.S. Park, M.-S. Chen, and P.S. Yu, "An effective hash-based algorithm for mining association rules," Proc. ACM SIGMOD Intl. Conf. on Man- agement of Data, pp. 175–186, 1995.
+5. A. Savasere, E. Omiecinski, and S.B. Navathe, "An efficient algorithm for mining association rules in large databases," Intl. Conf. on Very Large Databases, pp. 432-444, 1995.

@@ -1,4 +1,4 @@
-BIBLIOGRAPHY 501
+BIBLIOGRAPHY
 
 Carletta, J. (1996). Assessing agreement on classification tasks: the kappa statistic: Com-
 putational linguistics 22(2), 249-254.
@@ -33,3 +33,5 @@ Journal of biomedical informatics 34(5), 301-310.
 Charniak, E. (1997). Statistical techniques for natural language parsing AI magazine 18(4)
 3343.
 Under contract with MIT Press , shared under CC-BY-NC-ND license.
+
+501

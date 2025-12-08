@@ -1,4 +1,4 @@
-BIBLIOGRAPHY 501
+BIBLIOGRAPHY
 Carletta, J (1996). Assessing agreement on classification tasks: the kappa statistic. Com-
 putational linguistics 22(2), 249-254.
 Carletta, J. (2007). Unleashing the killer corpus: experiences in creating the multi-
@@ -26,9 +26,12 @@ driven learning See acl (2007), PP. 280-287.
 Chang, M.-W., L.-A. Ratinov, N. Rizzolo, and D. Roth (2008). Learning and inference with
 constraints. In Proceedings of the National Conference on Artificial Intelligence (AAAI), PP.
 1513-1518
-Chapman, W. W, W. Bridewell, P. Hanbury; G. F Cooper; and B. G. Buchanan (2001). A
 simple algorithm for identifying negated findings and diseases in discharge summaries.
 Journal of biomedical informatics 34(5), 301-310.
 Chamíak, E. (1997). Statistical techniques for natural language parsing. AI magazine 18(4),
 33 43.
 Under contract with MIT Press, shared under CC-BY-NC-ND license.
+
+Chapman, W. W, W. Bridewell, P. Hanbury; G. F Cooper; and B. G. Buchanan (2001). A
+
+501

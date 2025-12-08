@@ -1,6 +1,7 @@
-"""Función principal de procesamiento del documento."""
+"""Función principal de procesamiento del documento"""
 from pathlib import Path
 from typing import Iterable, Tuple, Optional
+import json
 import logging
 
 import cv2
@@ -16,26 +17,31 @@ DEFAULT_OUTPUT_DIR = Path("data/processed")
 def process_document(
     input_path: Path,
     output_dir: Path | None = None,
-    do_ocr: bool = True,
-    binarize_threshold: Optional[int] = None,
+    do_ocr: bool = True, # flag para aplicar OCR
+    binarize_threshold: Optional[int] = None, # flag para aplicar binarización
+    write_corners: bool = True,
 ) -> Tuple[Path, Path, Path, str]:
     image = cv2.imread(str(input_path))
     if image is None:
         raise FileNotFoundError(f"No se pudo leer la imagen de entrada: {input_path}")
 
-    gray, edges = preprocess(image)
-    contour = detect_document_contour(gray, edges)
+    gray, edges = preprocess(image) # devuelve una imagen en escala de grises y los bordes detectados
+    contour = detect_document_contour(gray, edges) # devuelve un array con las coordenadas de las esquinas detectadas
 
+    # Crear una imagen a la que se le dibuja el contorno detectado
     overlay = image.copy()
     poly = contour.reshape((-1, 1, 2)).astype(np.int32)
     cv2.polylines(overlay, [poly], True, (0, 255, 0), 3)
 
+    # Aplicar transformación perspectiva para obtener la vista "escaneada"
     warped = warp_perspective(image, contour)
     enhanced_warp = enhance_document_appearance(warped)
     cleaned_warp = whiten_near_white(enhanced_warp)
 
-    # Posible binarización final (opcional). Si se indica `binarize_threshold`,
-    # se aplica threshold al resultado limpio generado por el escáner.
+    """
+    Binarización final opcional. Si se indica "binarize_threshold",
+    se aplica threshold al resultado generado por el escáner
+    """
     final_for_ocr = cleaned_warp
     if binarize_threshold is not None:
         gray_for_bin = cv2.cvtColor(cleaned_warp, cv2.COLOR_BGR2GRAY)
@@ -43,12 +49,13 @@ def process_document(
         bin_bgr = cv2.cvtColor(bin_img, cv2.COLOR_GRAY2BGR)
         final_for_ocr = bin_bgr
 
-    # Ejecuta OCR solo si está habilitado
+    # Ejecutar OCR solo si está habilitado
     extracted_text = ""
     if do_ocr:
         reader = get_ocr_reader()
         extracted_text = extract_text(final_for_ocr, reader=reader)
 
+    # Preparar directorio de salida
     target_dir = output_dir or DEFAULT_OUTPUT_DIR
     target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -56,15 +63,23 @@ def process_document(
     contour_path = target_dir / f"entrada_contour{extension}"
     warp_path = target_dir / f"entrada_warp{extension}"
     warp_clean_path = target_dir / f"entrada_warp_doc{extension}"
+    corners_json_path = target_dir / f"{input_path.stem}.corners.json"
 
+    # Guardar imágenes de salida
     if not cv2.imwrite(str(contour_path), overlay):
         raise RuntimeError(f"No se pudo guardar la imagen de contorno en {contour_path}")
     if not cv2.imwrite(str(warp_path), warped):
         raise RuntimeError(f"No se pudo guardar la imagen warp en {warp_path}")
-    # Guardamos la versión final que representa el estado "optimizado" del documento.
-    # Si se aplicó binarización, `final_for_ocr` contiene la imagen binarizada.
     if not cv2.imwrite(str(warp_clean_path), final_for_ocr):
         raise RuntimeError(f"No se pudo guardar la imagen warp procesada en {warp_clean_path}")
+
+    # Guardar las esquinas detectadas para evaluarlas después
+    if write_corners:
+        corners_payload = {
+            "image": input_path.name,
+            "corners": [[float(x), float(y)] for [x, y] in contour.tolist()],
+        }
+        corners_json_path.write_text(json.dumps(corners_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     return contour_path, warp_path, warp_clean_path, extracted_text
 
@@ -74,13 +89,7 @@ def process_batch(
     output_root: Path | None = None,
     input_root: Path | None = None,
 ) -> list[Tuple[Path, Path, Path, str]]:
-    """Procesa una colección de imágenes.
 
-    Si se provee `input_root`, se intentará preservar la primera carpeta relativa bajo
-    `input_root` (por ejemplo `ocr_test`) y crear la salida en
-    `output_root/<subfolder>/<file_stem>/...`. Si no hay `input_root`, el comportamiento
-    antiguo se mantiene: `output_root/<file_stem>/...`.
-    """
     results: list[Tuple[Path, Path, Path, str]] = []
     root = (output_root or DEFAULT_OUTPUT_DIR).resolve()
 
@@ -95,9 +104,11 @@ def process_batch(
 
         stem = image_path.stem or "entrada"
 
-        # Determina la carpeta relativa superior (p. ej. 'ocr_test') si se proporciona input_root.
-        # Se intenta de forma robusta usando primero la ruta relativa del propio archivo
-        # y como fallback la carpeta padre, para manejar distintos niveles de profundidad.
+        """
+        Determinar la carpeta relativa superior ("ocr_test") si se proporciona input_root.
+        Se intenta de forma robusta usando primero la ruta relativa del propio archivo
+        y como fallback la carpeta padre, para manejar distintos niveles de profundidad
+        """
         if input_root is not None:
             try:
                 input_root_resolved = input_root.resolve()
@@ -122,10 +133,12 @@ def process_batch(
 
         # (no debug)
 
-        # Selecciona el comportamiento según la carpeta superior bajo `input_root`:
-        # - 'ocr_test' => escaneo + OCR
-        # - 'scanner_test' => solo escaneo (sin OCR)
-        # - 'scanner_test_bin' => escaneo + binarización (threshold=195) + OCR
+        """
+        Seleccionar el comportamiento según la carpeta superior bajo "input_root":
+            - "ocr_test" => escaneo + OCR
+            - "scanner_test" => solo escaneo (sin OCR)
+            - "scanner_test_bin" => escaneo + binarización (threshold=195) + OCR
+        """
         do_ocr_flag = True
         bin_thresh: Optional[int] = None
         if top_folder:
@@ -136,13 +149,19 @@ def process_batch(
             elif name == "scanner_test":
                 do_ocr_flag = False
                 bin_thresh = None
-            # Soportamos carpetas llamadas "ocr_test_bin" o "scanner_test_bin"
-            # y, por seguridad, cualquier carpeta que termine en "_bin".
+            
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
                 do_ocr_flag = True
                 bin_thresh = 195
 
-        result = process_document(image_path, target_dir, do_ocr=do_ocr_flag, binarize_threshold=bin_thresh)
+        write_corners = (top_folder == "scanner_test")
+        result = process_document(
+            image_path,
+            target_dir,
+            do_ocr=do_ocr_flag,
+            binarize_threshold=bin_thresh,
+            write_corners=write_corners,
+        )
         results.append(result)
 
     return results

@@ -34,7 +34,7 @@ the features FFN(qx) that encoded from the local costs qx and p's positional
 embedding PE(p), which can aggregate information from source pixel x's cost 9
 memory Tx via cross-attention,
 Qx = FFN (FFN(qx) + PE(p)) ,
-Kx = FFN (Tx) , Vx = FFN (Tx) 9 (4)
+Kx = FFN (Tx) , Vx = FFN (Tx) 9
 Cx = Attention( Qx, Kx, Vx) .
 The cross-attention summarizes information from the cost memory for each
 source pixel to predict its flow. As Qx is dynamically updated in terms of the fed
@@ -43,3 +43,5 @@ that keys and values can be generated at the beginning and re-used in subsequent
 iterations, which saves computation as a benefit of our recurrent decoder.
 
 via
+
+(4)

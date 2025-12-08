@@ -1,0 +1,30 @@
+{
+  "overall": {
+    "count": 7,
+    "cer_avg": 0.053353754999134764,
+    "wer_avg": 0.14055901983239008,
+    "area_ratio_gt_avg": null,
+    "area_ratio_pred_avg": null,
+    "area_ratio_diff_avg": null,
+    "aspect_ratio_gt_avg": null,
+    "aspect_ratio_pred_avg": null,
+    "aspect_ratio_diff_avg": null,
+    "corner_rmse_avg": null,
+    "polygon_iou_avg": null
+  },
+  "by_dataset": {
+    "ocr_test": {
+      "count": 7,
+      "cer_avg": 0.053353754999134764,
+      "wer_avg": 0.14055901983239008,
+      "area_ratio_gt_avg": null,
+      "area_ratio_pred_avg": null,
+      "area_ratio_diff_avg": null,
+      "aspect_ratio_gt_avg": null,
+      "aspect_ratio_pred_avg": null,
+      "aspect_ratio_diff_avg": null,
+      "corner_rmse_avg": null,
+      "polygon_iou_avg": null
+    }
+  }
+}
