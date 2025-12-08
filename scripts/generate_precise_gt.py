@@ -1,18 +1,7 @@
-"""Generador de ground-truth de esquinas usando un método más preciso.
-
-Método resumido:
-- Detecta un contorno inicial usando el detector actual (fallback).
-- Aplica warp para rectificar el documento a una imagen rectangular.
-- En la imagen rectificada detecta líneas con Hough y estima las cuatro líneas principales
-  (top, right, bottom, left) separando horizontales y verticales.
-- Calcula las intersecciones para obtener esquinas refinadas en coordenadas del warp.
-- Transforma las esquinas de vuelta a la imagen original y aplica `cornerSubPix` para
-  refinar sub-pixel en la imagen original.
-
-Este script guarda un JSON por imagen en `--output` con la estructura:
-  { "image": "name.jpg", "corners": [[x,y], ...] }
-
-No sobrescribe por defecto a menos que se pase `--overwrite`.
+"""Este script simula que disponemos de los bordes exactos de los documentos.
+Ha sido generado por una inteligencia artificial y su propósito es crear archivos
+JSON con las esquinas precisas de cada imagen. El código no contiene comentarios
+explicativos adicionales dentro del archivo.
 """
 from __future__ import annotations
 
@@ -61,17 +50,14 @@ def categorize_lines(lines: list[tuple[int, int, int, int]]) -> tuple[list, list
         angle = angle % 180
         if angle > 90:
             angle = 180 - angle
-        # near horizontal
         if angle < 30:
             horiz.append((x1, y1, x2, y2))
-        # near vertical
         elif angle > 60:
             vert.append((x1, y1, x2, y2))
     return horiz, vert
 
 
 def estimate_border_positions(horiz: list, vert: list, w: int, h: int):
-    # Return (top_y, bottom_y, left_x, right_x) in warped coords
     top_y = None
     bottom_y = None
     left_x = None
@@ -97,14 +83,12 @@ def estimate_border_positions(horiz: list, vert: list, w: int, h: int):
 
 
 def detect_precise_corners(img: np.ndarray) -> np.ndarray:
-    # Initial contour (fallback if Hough fails to produce stable lines)
     gray0, edges0 = preprocess(img)
     try:
         initial = detect_document_contour(gray0, edges0)
     except Exception:
         raise
 
-    # Warp to rect using the detected contour
     warped = warp_perspective(img, initial)
     wh, ww = warped.shape[:2]
 
@@ -115,13 +99,11 @@ def detect_precise_corners(img: np.ndarray) -> np.ndarray:
     lines = lines_from_hough(edges, min_len=min_len, max_gap=20)
     horiz, vert = categorize_lines(lines)
 
-    # If Hough failed to provide useful splits, fallback to initial contour
     if not horiz or not vert:
         return initial
 
     top_y, bottom_y, left_x, right_x = estimate_border_positions(horiz, vert, ww, wh)
 
-    # Corners in warped coords: TL, TR, BR, BL
     warped_corners = np.array(
         [
             [left_x, top_y],
@@ -132,16 +114,12 @@ def detect_precise_corners(img: np.ndarray) -> np.ndarray:
         dtype=np.float32,
     )
 
-    # Map back to original image coords via inverse perspective
     src_rect = np.array(warped_corners, dtype=np.float32)
     dst_rect = initial.astype(np.float32)
-    # We have transform from original->warped used in warp_perspective: T = getPerspectiveTransform(original, dest)
-    # To invert, compute inverse transform from warped -> original
     inv = cv2.getPerspectiveTransform(src_rect, dst_rect)
     warped_pts = src_rect.reshape(-1, 1, 2)
     orig_pts = cv2.perspectiveTransform(warped_pts, inv).reshape(-1, 2)
 
-    # Refine with cornerSubPix on the original grayscale
     gray_orig = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
     pts = orig_pts.reshape(-1, 1, 2).astype(np.float32)
@@ -179,7 +157,7 @@ def process_image(img_path: Path, output_root: Path, debug_dir: Path | None = No
             cv2.imwrite(str(debug_path), overlay)
 
         return True, "ok"
-    except Exception as exc:  # pragma: no cover - runtime fallback
+    except Exception as exc:
         return False, f"error: {exc}"
 
 

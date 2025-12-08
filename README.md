@@ -32,7 +32,7 @@ Nota sobre GPU: si piensas usar EasyOCR con GPU instala una versión de `torch` 
 - `data/processed/` — salida del pipeline: para cada imagen se crea `data/processed/<dataset>/<stem>/` con imágenes y opcionalmente `<stem>.txt` y `<stem>.corners.json`.
 - `reports/metrics/` — salidas de la evaluación: `metrics_detail.csv`, `metrics_summary.json`, gráficos PNG.
 - `src/` — código fuente.
-- `scripts/` — utilidades: `auto_annotate_corners.py`, `evaluate.py`.
+ - `scripts/` — utilidades: `generate_precise_gt.py`, `evaluate.py`.
 
 ## Ejecutar el pipeline
 
@@ -59,11 +59,11 @@ Salida por imagen (en `data/processed/<dataset>/<stem>/`):
 
 ## Auto-anotar esquinas (generar ground-truth)
 
-Si no tienes ground-truth de esquinas, puedes generarlo automáticamente con el detector actual usando `scripts/auto_annotate_corners.py`.
+Si no tienes ground-truth de esquinas, puedes generarlo automáticamente con el generador más preciso `scripts/generate_precise_gt.py`.
 
 Ejemplo (PowerShell):
 ```powershell
-python .\scripts\auto_annotate_corners.py --input data/raw/scanner_test --output data/ground_truth/scanner_test --debug-dir data/ground_truth/scanner_test_debug
+python .\scripts\generate_precise_gt.py --input data/raw/scanner_test --output data/ground_truth/scanner_test_precise --debug-dir data/ground_truth/scanner_test_debug
 ```
 
 - `--debug-dir` (opcional): guarda overlays JPEG con el polígono dibujado para inspección manual.
@@ -106,7 +106,7 @@ Interpretación rápida
 - `area_ratio`: área del polígono / área de la imagen (útil para detectar recortes muy pequeños o incorrectos).
 
 Por qué puede salir todo "perfecto"
-- Si tus predicciones en `data/processed/<dataset>/*/*.corners.json` fueron copiadas desde las mismas GT (por ejemplo usando `auto_annotate_corners.py`), la evaluación mostrará RMSE=0 e IoU=1. Esto indica que la evaluación funciona — pero no hay discrepancias reales que medir.
+- Si tus predicciones en `data/processed/<dataset>/*/*.corners.json` fueron copiadas desde las mismas GT (por ejemplo usando `scripts/generate_precise_gt.py`), la evaluación mostrará RMSE=0 e IoU=1. Esto indica que la evaluación funciona — pero no hay discrepancias reales que medir.
 
 Generar casos con discrepancias (para probar sensibilidad)
 - Puedes ejecutar el pipeline sobre un conjunto distinto de imágenes (no las que usaste para auto-annotate) para obtener predicciones que probablemente difieran de las GT.
@@ -170,7 +170,7 @@ Nota sobre GPU: si piensas usar EasyOCR con GPU instala una versión de `torch` 
 - `data/processed/` — salida del pipeline: para cada imagen se crea `data/processed/<dataset>/<stem>/` con imágenes y opcionalmente `<stem>.txt` y `<stem>.corners.json`.
 - `reports/metrics/` — salidas de la evaluación: `metrics_detail.csv`, `metrics_summary.json`, gráficos PNG.
 - `src/` — código fuente.
-- `scripts/` — utilidades: `auto_annotate_corners.py`, `evaluate.py`.
+- `scripts/` — utilidades: `generate_precise_gt.py`, `evaluate.py`.
 
 ## Ejecutar el pipeline
 
