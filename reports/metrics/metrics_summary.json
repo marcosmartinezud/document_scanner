@@ -1,18 +1,44 @@
 {
   "overall": {
-    "count": 42,
-    "cer_avg": null,
-    "wer_avg": null,
+    "count": 56,
+    "cer_avg": 0.11514942093917617,
+    "wer_avg": 0.20812638197950376,
     "area_ratio_gt_avg": 0.4174249889827487,
     "area_ratio_pred_avg": 0.4168640000123893,
     "area_ratio_diff_avg": -0.0005609889703593647,
     "aspect_ratio_gt_avg": 0.842916199416458,
-    "aspect_ratio_pred_avg": 0.8427851618060355,
+    "aspect_ratio_pred_avg": 0.8427851618060351,
     "aspect_ratio_diff_avg": -0.00013103761042269438,
     "corner_rmse_avg": 0.6454185518311943,
-    "polygon_iou_avg": 0.9985493020977455
+    "polygon_iou_avg": 0.9985493020977453
   },
   "by_dataset": {
+    "ocr_test": {
+      "count": 7,
+      "cer_avg": 0.053353754999134764,
+      "wer_avg": 0.14055901983239008,
+      "area_ratio_gt_avg": null,
+      "area_ratio_pred_avg": null,
+      "area_ratio_diff_avg": null,
+      "aspect_ratio_gt_avg": null,
+      "aspect_ratio_pred_avg": null,
+      "aspect_ratio_diff_avg": null,
+      "corner_rmse_avg": null,
+      "polygon_iou_avg": null
+    },
+    "ocr_test_bin": {
+      "count": 7,
+      "cer_avg": 0.17694508687921764,
+      "wer_avg": 0.27569374412661746,
+      "area_ratio_gt_avg": null,
+      "area_ratio_pred_avg": null,
+      "area_ratio_diff_avg": null,
+      "aspect_ratio_gt_avg": null,
+      "aspect_ratio_pred_avg": null,
+      "aspect_ratio_diff_avg": null,
+      "corner_rmse_avg": null,
+      "polygon_iou_avg": null
+    },
     "scanner_test": {
       "count": 42,
       "cer_avg": null,
@@ -21,10 +47,14 @@
       "area_ratio_pred_avg": 0.4168640000123893,
       "area_ratio_diff_avg": -0.0005609889703593647,
       "aspect_ratio_gt_avg": 0.842916199416458,
-      "aspect_ratio_pred_avg": 0.8427851618060355,
+      "aspect_ratio_pred_avg": 0.8427851618060351,
       "aspect_ratio_diff_avg": -0.00013103761042269438,
       "corner_rmse_avg": 0.6454185518311943,
-      "polygon_iou_avg": 0.9985493020977455
+      "polygon_iou_avg": 0.9985493020977453
     }
+  },
+  "comparison_ocr_vs_bin": {
+    "cer_diff": 0.12359133188008288,
+    "wer_diff": 0.13513472429422738
   }
 }

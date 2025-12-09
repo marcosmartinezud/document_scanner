@@ -10,6 +10,11 @@ import csv
 from pathlib import Path
 from typing import Optional, Iterable
 
+# Ensure repository root is importable when running the script directly
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import numpy as np
 
 from src.eval_metrics import cer, wer, polygon_area, aspect_ratio, mean_corner_error
@@ -388,6 +393,19 @@ def main(argv=None) -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     write_csv(args.out_dir / "metrics_detail.csv", all_rows)
     write_json(args.out_dir / "metrics_summary.json", summary)
+
+    # Generar salidas separadas por dataset (carpetas hermanas: metrics_<dataset>)
+    for ds in sorted({r["dataset"] for r in all_rows}):
+        ds_rows = [r for r in all_rows if r.get("dataset") == ds]
+        if not ds_rows:
+            continue
+        ds_out = args.out_dir.parent / f"{args.out_dir.name}_{ds}"
+        ds_out.mkdir(parents=True, exist_ok=True)
+        ds_summary = summarize(ds_rows)
+        write_csv(ds_out / "metrics_detail.csv", ds_rows)
+        write_json(ds_out / "metrics_summary.json", ds_summary)
+        if not args.no_plots:
+            plot_metrics(ds_out, ds_summary, ds_rows)
 
     if not args.no_plots:
         plot_metrics(args.out_dir, summary, all_rows)

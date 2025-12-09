@@ -146,15 +146,14 @@ def process_batch(
             if name == "ocr_test":
                 do_ocr_flag = True
                 bin_thresh = None
-            elif name == "scanner_test":
+            elif name in ("scanner_test", "failed"):
                 do_ocr_flag = False
                 bin_thresh = None
-            
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
                 do_ocr_flag = True
                 bin_thresh = 195
 
-        write_corners = (top_folder == "scanner_test")
+        write_corners = top_folder == "scanner_test"
         result = process_document(
             image_path,
             target_dir,

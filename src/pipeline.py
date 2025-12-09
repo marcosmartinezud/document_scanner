@@ -69,24 +69,31 @@ def main() -> None:
         # Decidir flags según la carpeta superior
         do_ocr_flag = True
         bin_thresh = None
+        write_corners = True
         if top_folder:
             name = str(top_folder).lower()
             if name == "ocr_test":
                 do_ocr_flag = True
                 bin_thresh = None
-            elif name == "scanner_test":
+            elif name in ("scanner_test", "failed"):
                 do_ocr_flag = False
                 bin_thresh = None
+                write_corners = (name == "scanner_test")
             # Para carpetas llamadas "ocr_test_bin" o "scanner_test_bin"
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
                 do_ocr_flag = True
                 bin_thresh = 195
+            else:
+                write_corners = True
+        else:
+            write_corners = True
 
         contour_path, warp_path, warp_clean_path, extracted_text = process_document(
             input_path,
             target_dir,
             do_ocr=do_ocr_flag,
             binarize_threshold=bin_thresh,
+            write_corners=write_corners,
         )
         # Guardar OCR en archivo si existe
         if extracted_text:

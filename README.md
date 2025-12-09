@@ -16,7 +16,7 @@ Nota GPU: si usarás EasyOCR con GPU, instala primero la versión de torch adecu
 
 Cómo se organiza el proyecto
 ----------------------------
-- `data/raw/`: imágenes de entrada por dataset (`ocr_test`, `ocr_test_bin`, `scanner_test`, `failed`, ...).
+- `data/raw/`: imágenes de entrada por dataset (`ocr_test`, `ocr_test_bin`, `scanner_test` y `failed`).
 - `data/processed/`: salidas del pipeline por imagen (`entrada_contour`, `entrada_warp`, `entrada_warp_doc`, opcional `.txt`, opcional `.corners.json`).
 - `data/ground_truth/`: GT OCR (`.gt.txt`) y esquinas (`.corners.json`).
 - `reports/metrics/`: métricas CSV/JSON y gráficos.
@@ -30,6 +30,7 @@ Reglas del pipeline (CLI `python -m src.pipeline`)
 - Comportamiento por carpeta superior:
   - `ocr_test`: escaneo + OCR.
   - `scanner_test`: solo geometría (sin OCR). Guarda `.corners.json`.
+  - `failed`: solo geometría (sin OCR). No se evalúa ni guarda esquinas.
   - sufijo `_bin` (`ocr_test_bin`, `scanner_test_bin`): binariza (thr=195) y luego OCR.
 
 Comandos útiles (PowerShell)
@@ -44,8 +45,6 @@ python -m src.pipeline --input data/raw/ocr_test --output-dir data/processed
 # 3) Toda la raíz
 python -m src.pipeline --input data/raw --output-dir data/processed
 
-# 4) Solo geometría (sin OCR), sobrescribiendo la regla por carpeta
-python -m src.pipeline --input data/raw/failed --output-dir data/processed/failed
 ```
 
 Salida por imagen
@@ -54,23 +53,35 @@ Salida por imagen
 - `entrada_warp.<ext>`: perspectiva corregida.
 - `entrada_warp_doc.<ext>`: resultado final (binarizado si `_bin`).
 - `<stem>.txt`: OCR cuando aplica.
-- `<stem>.corners.json`: esquinas predichas (se genera para `scanner_test`).
+- `<stem>.corners.json`: esquinas predichas (solo para `scanner_test`).
 
 Evaluar (scripts/evaluate.py)
 -----------------------------
-```powershell
-# OCR + geometría (datasets por defecto)
-python .\scripts\evaluate.py --gt-root data/ground_truth --pred-root data/processed --raw-root data/raw --pred-corners-root data/processed --out-dir reports/metrics
+Genera métricas por dataset y crea una carpeta de salida general además de carpetas por dataset (`reports/metrics_<dataset>`).
 
-# Solo geometría (scanner_test) y 3 gráficos solicitados
-python .\scripts\evaluate.py --geometry-only --pred-corners-root data/processed --out-dir reports/metrics
+```powershell
+python .\scripts\evaluate.py --gt-root data/ground_truth --pred-root data/processed --raw-root data/raw --pred-corners-root data/processed --out-dir reports/metrics
 ```
-Produce `metrics_detail.csv`, `metrics_summary.json` y (solo en `scanner_test`) los gráficos: `corner_rmse_hist.png`, `polygon_iou_hist.png`, `area_ratio_scatter.png`.
+
+Para evaluar únicamente la métrica geométrica añade `--geometry-only` al comando anterior.
+
+Qué produce
+- `reports/metrics/metrics_detail.csv` + `metrics_summary.json` (combinado)
+- Carpetas por dataset al lado de la anterior: `reports/metrics_ocr_test`, `reports/metrics_ocr_test_bin`, `reports/metrics_scanner_test` — cada una con su `metrics_detail.csv` y `metrics_summary.json`.
+- Gráficos: `corner_rmse_hist.png`, `polygon_iou_hist.png`, `area_ratio_scatter.png` se generan en `reports/metrics_scanner_test` (si hay datos de `scanner_test`).
+
+Notas:
+- Si `data/ground_truth/scanner_test` no existe, la evaluación geométrica omitirá `scanner_test` (mueve tus GT precisos a esa carpeta o usa la opción `--gt-root` adecuada).
+- Usa `--no-plots` para desactivar la generación de gráficos.
 
 Generar GT de esquinas (opcional)
 ---------------------------------
 ```powershell
-python .\scripts\generate_precise_gt.py --input data/raw/scanner_test --output data/ground_truth/scanner_test_precise --debug-dir data/ground_truth/scanner_test_debug
+# Generar GT preciso — comando recomendado: escribir directamente en la ruta que espera el evaluador
+python .\scripts\generate_precise_gt.py --input data/raw/scanner_test --output data/ground_truth/scanner_test --debug-dir data/ground_truth/scanner_test_debug
+
+# Alternativa (ejecutando como módulo):
+python -m scripts.generate_precise_gt --input data/raw/scanner_test --output data/ground_truth/scanner_test --debug-dir data/ground_truth/scanner_test_debug
 ```
 
 Pruebas rápidas
@@ -83,5 +94,4 @@ pytest -q
 Notas rápidas
 -------------
 - Si faltan `.gt.txt` o `.corners.json`, las métricas correspondientes salen `null`.
-- `corner_rmse` bajo e `IoU` alto indican buena alineación; `area_ratio` ayuda a detectar recortes excesivos.
 - Usa `--no-plots` si no quieres gráficos, o cambia `--out-dir` para separar resultados.

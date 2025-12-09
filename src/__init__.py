@@ -1,4 +1,4 @@
-"""Paquete principal del proyecto de escaneo documental."""
+"""Paquete principal del proyecto de escaneo documental"""
 
 from .document_pipeline import process_document
 

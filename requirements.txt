@@ -1,18 +1,18 @@
-# Core image processing
 opencv-python>=4.8.0
 numpy>=1.24.0
 
-# OCR and text extraction
 easyocr>=1.7.0
 torch>=2.0.0
 torchvision>=0.15.0
 
-# Visualización de métricas
 matplotlib>=3.7.0
 
-# Additional dependencies for EasyOCR
 Pillow>=10.0.0
 scipy>=1.11.0
 scikit-image>=0.21.0
 python-bidi>=0.4.2
 PyYAML>=6.0
+
+pandas>=2.1.0
+pytesseract>=0.3.10
+tqdm>=4.66.0

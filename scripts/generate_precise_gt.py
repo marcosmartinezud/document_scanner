@@ -11,6 +11,11 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
+# Asegura que el repo (raíz) esté en sys.path aunque se ejecute el script directamente
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import cv2
 import numpy as np
 
@@ -164,7 +169,8 @@ def process_image(img_path: Path, output_root: Path, debug_dir: Path | None = No
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generador de ground-truth preciso para esquinas (scanner_test)")
     parser.add_argument("--input", type=Path, default=Path("data/raw/scanner_test"))
-    parser.add_argument("--output", type=Path, default=Path("data/ground_truth/scanner_test_precise"))
+    # Por defecto escribir directamente a la ruta que usa el evaluador
+    parser.add_argument("--output", type=Path, default=Path("data/ground_truth/scanner_test"))
     parser.add_argument("--overwrite", action="store_true", help="Sobrescribe JSON existentes")
     parser.add_argument("--debug-dir", type=Path, default=None, help="Carpeta donde guardar overlays con el polígono dibujado")
     parser.add_argument(
