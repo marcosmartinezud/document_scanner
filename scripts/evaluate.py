@@ -274,6 +274,20 @@ def write_json(path: Path, data):
 
 # Generar gráficos de métricas usando matplotlib
 def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
+    """
+    Genera únicamente tres gráficos geométricos para `scanner_test`:
+    - corner_rmse_hist.png
+    - polygon_iou_hist.png
+    - area_ratio_scatter.png
+
+    No genera gráficos para otros datasets (ocr_test / ocr_test_bin) y
+    tampoco genera gráficos cuando el directorio de salida sea
+    `metrics_ocr_test` o `metrics_ocr_test_bin`.
+    """
+    # Saltar gráficos explícitamente en las carpetas pedidas
+    if out_dir.name in {"metrics_ocr_test", "metrics_ocr_test_bin"}:
+        return
+
     try:
         import matplotlib
         matplotlib.use("Agg")
@@ -282,30 +296,13 @@ def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
         print("matplotlib no disponible; se omiten gráficos")
         return
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-    by_ds = summary.get("by_dataset", {})
-    datasets = list(by_ds.keys())
-    cer_vals = [by_ds[d].get("cer_avg") for d in datasets]
-    wer_vals = [by_ds[d].get("wer_avg") for d in datasets]
-
-    def bar_plot(vals, name):
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.bar(datasets, vals, color=["#4c78a8", "#9ecae9", "#f58518"][: len(datasets)])
-        ax.set_ylabel(name)
-        ax.set_title(f"{name} por dataset")
-        ax.grid(axis="y", alpha=0.3)
-        fig.tight_layout()
-        fig.savefig(out_dir / f"{name.lower()}_by_dataset.png", dpi=150)
-        plt.close(fig)
-
-    if any(v is not None for v in cer_vals):
-        bar_plot([v if v is not None else 0 for v in cer_vals], "CER")
-    if any(v is not None for v in wer_vals):
-        bar_plot([v if v is not None else 0 for v in wer_vals], "WER")
-
-    # Gráficos geométricos (solo scanner_test)
+    # Solo consideramos filas del dataset geométrico
     geo_rows = [r for r in rows if r.get("dataset") == "scanner_test"]
-    geo_summary = by_ds.get("scanner_test") or {}
+    if not geo_rows:
+        return
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     def hist_plot(values, title, fname, bins=20):
         vals = [v for v in values if v is not None]
         if not vals:
@@ -333,14 +330,9 @@ def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
         fig.savefig(out_dir / fname, dpi=150)
         plt.close(fig)
 
+    # Gráficos solicitados
     hist_plot([r.get("corner_rmse") for r in geo_rows], "Distribución Corner RMSE", "corner_rmse_hist.png")
     hist_plot([r.get("polygon_iou") for r in geo_rows], "Distribución IoU", "polygon_iou_hist.png")
-
-    hist_plot([r.get("area_ratio_gt") for r in geo_rows], "Área ratio GT", "area_ratio_gt_hist.png", bins=15)
-    hist_plot([r.get("area_ratio_pred") for r in geo_rows], "Área ratio pred", "area_ratio_pred_hist.png", bins=15)
-    hist_plot([r.get("aspect_ratio_gt") for r in geo_rows], "Aspect ratio GT", "aspect_ratio_gt_hist.png", bins=15)
-    hist_plot([r.get("aspect_ratio_pred") for r in geo_rows], "Aspect ratio pred", "aspect_ratio_pred_hist.png", bins=15)
-
     scatter_plot(
         [r.get("area_ratio_gt") for r in geo_rows],
         [r.get("area_ratio_pred") for r in geo_rows],
@@ -349,30 +341,6 @@ def plot_metrics(out_dir: Path, summary: dict, rows: list[dict]):
         "Área ratio Pred",
         "area_ratio_scatter.png",
     )
-    scatter_plot(
-        [r.get("aspect_ratio_gt") for r in geo_rows],
-        [r.get("aspect_ratio_pred") for r in geo_rows],
-        "Aspect ratio GT vs Pred",
-        "Aspect GT",
-        "Aspect Pred",
-        "aspect_ratio_scatter.png",
-    )
-
-    # Guardar también gráficos de barras para promedios generales
-    avg_metrics = {
-        "corner_rmse_avg": geo_summary.get("corner_rmse_avg"),
-        "polygon_iou_avg": geo_summary.get("polygon_iou_avg"),
-    }
-    for name, val in avg_metrics.items():
-        if val is None:
-            continue
-        fig, ax = plt.subplots(figsize=(4, 4))
-        ax.bar([name], [val], color="#4c78a8")
-        ax.set_ylim(0, max(1.0, val * 1.2))
-        ax.set_title(f"{name}")
-        fig.tight_layout()
-        fig.savefig(out_dir / f"{name}_bar.png", dpi=150)
-        plt.close(fig)
 
 
 def main(argv=None) -> int:
