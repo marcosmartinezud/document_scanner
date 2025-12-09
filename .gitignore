@@ -18,11 +18,3 @@ dist/
 
 .DS_Store
 Thumbs.db
-
-# Data and generated outputs
-data/processed/
-reports/
-data/ground_truth/*_debug/
-
-# Temporary rename artifacts
-data/raw/**/tmp_*
