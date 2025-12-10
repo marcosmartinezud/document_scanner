@@ -1,7 +1,7 @@
 ﻿Document Scanner
 ===============================
 
-Pipeline para "escanear" fotos de documentos: detecta el contorno principal, corrige perspectiva, mejora la imagen y, opcionalmente, hace OCR. Incluye utilidades para generar ground truth de esquinas y evaluar OCR y geometría.
+Pipeline para "escanear" fotos de documentos: detecta el contorno principal, corrige perspectiva, mejora la imagen y, opcionalmente, hace OCR. Incluye utilidades para evaluar OCR y geometría.
 
 Como ejecutar
 -------------------------------
