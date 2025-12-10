@@ -1,4 +1,4 @@
-"""Entry point para ejecutar el CLI con `python -m src`."""
+"""Entry point para ejecutar el CLI con `python -m src`"""
 from .pipeline import main
 
 

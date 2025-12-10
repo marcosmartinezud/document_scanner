@@ -1,4 +1,4 @@
-"""Módulo OCR usando EasyOCR con postprocesamiento avanzado"""
+"""Módulo OCR usando EasyOCR con postprocesamiento"""
 from __future__ import annotations
 
 from functools import lru_cache
@@ -15,7 +15,7 @@ def _detect_gpu(use_gpu_override: bool | None) -> bool:
     """
     Decidir si usar GPU
         - Si el usuario indica True/False, se respeta
-        - Si es None, se intenta detectar CUDA via torch. 
+        - Si es None, se intenta detectar CUDA via torch
           Si no está torch o falla, se vuelve a CPU
     """
     if use_gpu_override is not None:
@@ -31,7 +31,7 @@ def _detect_gpu(use_gpu_override: bool | None) -> bool:
 @lru_cache(maxsize=4)
 def _build_reader(languages: tuple[str, ...], use_gpu: bool):
     """
-    Crea y cachea el lector de EasyOCR. Si falla, lanza RuntimeError con detalles
+    Crear y cachear el lector de EasyOCR. Si falla, lanzar RuntimeError con detalles
     """
 
     try:
@@ -41,7 +41,7 @@ def _build_reader(languages: tuple[str, ...], use_gpu: bool):
 
     try:
         reader = easyocr.Reader(list(languages), gpu=use_gpu, verbose=False)
-    except Exception as exc:  # pragma: no cover - inicialización puede fallar en runtime
+    except Exception as exc: 
         raise RuntimeError(f"No se pudo inicializar EasyOCR (idiomas={languages}, gpu={use_gpu})") from exc
 
     if use_gpu:
@@ -53,8 +53,8 @@ def _build_reader(languages: tuple[str, ...], use_gpu: bool):
 
 def get_ocr_reader(languages: Sequence[str] | None = None, use_gpu: bool | None = None):
     """
-    Obtiene un lector de OCR de EasyOCR con los idiomas especificados.
-    Si no se especifican idiomas, se usan inglés y español por defecto.
+    Obtener un lector de OCR de EasyOCR con los idiomas especificados
+    Si no se especifican idiomas, usar inglés y español por defecto
     """
     lang_tuple = tuple(languages or ("en", "es"))
     use_gpu_final = _detect_gpu(use_gpu)
@@ -68,7 +68,7 @@ def extract_text(
     return_debug: bool = False,
 ):
     
-    # Si no se pasa reader, se crea uno por defecto
+    # Si no se pasa reader, crear uno por defecto
     if reader is None:
         reader = get_ocr_reader()
 
@@ -84,7 +84,7 @@ def _postprocess_easyocr_results(
     return_debug: bool = False,
 ):
     """
-    Postprocesa los resultados de EasyOCR para juntar el texto en párrafos con sentido
+    Postprocesar los resultados de EasyOCR para juntar el texto en párrafos con sentido
     """
 
     if not results:

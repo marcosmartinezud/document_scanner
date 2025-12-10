@@ -75,10 +75,10 @@ def main() -> None:
             if name == "ocr_test":
                 do_ocr_flag = True
                 bin_thresh = None
-            elif name in ("scanner_test", "failed"):
+            elif name == "scanner_test":
                 do_ocr_flag = False
                 bin_thresh = None
-                write_corners = (name == "scanner_test")
+                write_corners = True
             # Para carpetas llamadas "ocr_test_bin" o "scanner_test_bin"
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
                 do_ocr_flag = True

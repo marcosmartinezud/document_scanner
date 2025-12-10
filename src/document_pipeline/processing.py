@@ -40,7 +40,7 @@ def process_document(
 
     """
     Binarización final opcional. Si se indica "binarize_threshold",
-    se aplica threshold al resultado generado por el escáner
+    aplicar threshold al resultado generado por el escáner
     """
     final_for_ocr = cleaned_warp
     if binarize_threshold is not None:
@@ -146,7 +146,7 @@ def process_batch(
             if name == "ocr_test":
                 do_ocr_flag = True
                 bin_thresh = None
-            elif name in ("scanner_test", "failed"):
+            elif name == "scanner_test":
                 do_ocr_flag = False
                 bin_thresh = None
             elif name in ("scanner_test_bin", "ocr_test_bin") or name.endswith("_bin"):
